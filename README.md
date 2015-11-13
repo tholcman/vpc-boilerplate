@@ -3,6 +3,11 @@ VPC boilerplate for AWS Rockaway Hackathon
 
 Configs are written in Neon in folder ./configs/**
 
+Install dependencies
+```
+composer install
+```
+
 Convert to JSON
 ```
 ./cf.php convert configs/vpc-boilerplate.neon outputs/vpc-boilerplate.json
