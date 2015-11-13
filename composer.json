@@ -1,0 +1,10 @@
+{
+	"require": {
+		"symfony/console": "~2.6",
+		"tracy/tracy": "~2.3",
+		"nette/nette": "~2.3"
+	},
+	"config": {
+		"vendor-dir": "vendor"
+	}
+}

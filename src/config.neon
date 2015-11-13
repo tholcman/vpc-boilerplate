@@ -1,0 +1,10 @@
+parameters:
+	app:
+		name: "Neon to JSON convertor."
+
+services:
+	- \Symfony\Component\Console\Application(%app.name%)
+
+	- \NeonConfig\Merger
+	- \NeonConfig\Command\Convert
+
