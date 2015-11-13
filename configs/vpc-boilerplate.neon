@@ -1,1 +1,184 @@
-vpc-boilerplate.neon
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "AWS Rockaway Hackathon vpc boilerplate."
+
+Parameters:
+	MyIp:
+		Type: String
+		Default: 212.4.134.24/32
+
+Resources:
+	Vpc:
+		Type: AWS::EC2::VPC
+		Properties:
+			CidrBlock: 10.0.0.0/16
+			EnableDnsSupport: true
+			EnableDnsHostnames: true
+			InstanceTenancy: default
+			Tags:
+				-
+					Key: Name
+					Value: Hackathon
+
+	HackathonSecurityGroup:
+		Type: AWS::EC2::SecurityGroup
+		Properties:
+			GroupDescription: "Allow All Traffic from VPC and my IP."
+			VpcId: { Ref: Vpc}
+			SecurityGroupIngress:
+				-
+					IpProtocol: tcp
+					FromPort: 0
+					ToPort: 65535
+					CidrIp: 10.0.0.0/16
+				-
+					IpProtocol: udp
+					FromPort: 0
+					ToPort: 65535
+					CidrIp: 10.0.0.0/16
+				-
+					IpProtocol: icmp
+					FromPort: -1
+					ToPort: -1
+					CidrIp: 10.0.0.0/16
+				-
+					IpProtocol: tcp
+					FromPort: 0
+					ToPort: 65535
+					CidrIp: { Ref: MyIp }
+				-
+					IpProtocol: udp
+					FromPort: 0
+					ToPort: 65535
+					CidrIp: { Ref: MyIp }
+				-
+					IpProtocol: icmp
+					FromPort: -1
+					ToPort: -1
+					CidrIp: { Ref: MyIp }
+
+	InternetGateway:
+		Type: AWS::EC2::InternetGateway
+
+	InternetGatewayAttachment:
+		Type: AWS::EC2::VPCGatewayAttachment
+		Properties:
+			InternetGatewayId: { Ref: InternetGateway }
+			VpcId: { Ref: Vpc }
+
+	OutRouteTable:
+		Type: AWS::EC2::RouteTable
+		Properties:
+			VpcId: { Ref: Vpc }
+			Tags:
+				-
+					Key: Name
+					Value: OutRouteTable
+
+	OutRoute:
+		Type: AWS::EC2::Route
+		Properties:
+			DestinationCidrBlock: 0.0.0.0/0
+			GatewayId: { Ref: InternetGateway }
+			RouteTableId: { Ref: OutRouteTable }
+
+	PublicSubnetA:
+		Type: AWS::EC2::Subnet
+		Properties:
+			AvailabilityZone:
+				Fn::Join:
+					- ""
+					- [ { "Ref" : "AWS::Region" }, "a" ]
+			CidrBlock: 10.0.31.0/24
+			VpcId: { Ref: Vpc }
+			MapPublicIpOnLaunch: true
+			Tags:
+				-
+					Key: Name
+					Value: PublicSubnetA
+
+	PublicSubnetB:
+		Type: AWS::EC2::Subnet
+		Properties:
+			AvailabilityZone:
+				Fn::Join:
+					- ""
+					- [ { "Ref" : "AWS::Region" }, "b" ]
+			CidrBlock: 10.0.32.0/24
+			VpcId: { Ref: Vpc }
+			MapPublicIpOnLaunch: true
+			Tags:
+				-
+					Key: Name
+					Value: PublicSubnetB
+
+	PublicSubnetARouteTableAssociation:
+		Type: AWS::EC2::SubnetRouteTableAssociation
+		Properties:
+			RouteTableId: { Ref : OutRouteTable }
+			SubnetId: { Ref : PublicSubnetA }
+
+	PublicSubnetBRouteTableAssociation:
+		Type: AWS::EC2::SubnetRouteTableAssociation
+		Properties:
+			RouteTableId: { Ref : OutRouteTable }
+			SubnetId: { Ref : PublicSubnetB }
+
+	DBSubnetGroup:
+		Type: AWS::RDS::DBSubnetGroup
+		Properties:
+			DBSubnetGroupDescription: "Db subnet"
+			SubnetIds:
+				- { Ref: PublicSubnetA }
+				- { Ref: PublicSubnetB }
+			Tags:
+				-
+					Key: Name
+					Value: DBSubnetGroup
+
+	CacheSubnetGroup:
+		Type: AWS::ElastiCache::SubnetGroup
+		Properties:
+			Description: "cache subnet"
+			SubnetIds:
+				- { Ref: PublicSubnetA }
+				- { Ref: PublicSubnetB }
+
+	AdministratorAccessInstanceProfile:
+		Type: AWS::IAM::InstanceProfile
+		Properties:
+			Path: /hackathon/admin/
+			Roles:
+				- { Ref: AdministratorAccessRoleEC2 }
+
+	AdministratorAccessRoleEC2:
+		Type: AWS::IAM::Role
+		Properties:
+			AssumeRolePolicyDocument:
+				Version: "2012-10-17"
+				Statement:
+					-
+						Effect: Allow
+						Principal: { Service: [ "ec2.amazonaws.com" ] }
+						Action: [ "sts:AssumeRole" ]
+			Path: /hackathon/admin/ec2/
+			ManagedPolicyArns:
+				- arn:aws:iam::aws:policy/AdministratorAccess
+
+	AdministratorAccessRoleLambda:
+		Type: AWS::IAM::Role
+		Properties:
+			AssumeRolePolicyDocument:
+				Version: "2012-10-17"
+				Statement:
+					-
+						Effect: Allow
+						Principal: { Service: [ "lambda.amazonaws.com" ] }
+						Action: [ "sts:AssumeRole" ]
+			Path: /hackathon/admin/lambda/
+			ManagedPolicyArns:
+				- arn:aws:iam::aws:policy/AdministratorAccess
+
+
+
+
