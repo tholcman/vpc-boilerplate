@@ -1,6 +1,11 @@
 # vpc-boilerplate
 VPC boilerplate for AWS Rockaway Hackathon
 
+Template to send to CloudFormation
+```
+./outputs/vpc-boilerplate.json
+```
+
 Configs are written in Neon in folder ./configs/**
 
 Install dependencies

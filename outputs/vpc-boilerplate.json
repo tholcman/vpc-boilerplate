@@ -2,6 +2,19 @@
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "AWS Rockaway Hackathon vpc boilerplate.",
     "Parameters": {
+        "VpnPrefix": {
+            "Type": "String",
+            "Default": "10.11",
+            "AllowedValues": [
+                "10.11",
+                "10.12",
+                "10.13",
+                "10.14",
+                "10.15",
+                "10.0"
+            ],
+            "Description": "First two numbers from VPN subnet."
+        },
         "MyIp": {
             "Type": "String",
             "Default": "212.4.134.24\/32"
@@ -35,19 +48,49 @@
                         "IpProtocol": "tcp",
                         "FromPort": 0,
                         "ToPort": 65535,
-                        "CidrIp": "10.0.0.0\/16"
+                        "CidrIp": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "VpnPrefix"
+                                    },
+                                    ".0.0\/16"
+                                ]
+                            ]
+                        }
                     },
                     {
                         "IpProtocol": "udp",
                         "FromPort": 0,
                         "ToPort": 65535,
-                        "CidrIp": "10.0.0.0\/16"
+                        "CidrIp": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "VpnPrefix"
+                                    },
+                                    ".0.0\/16"
+                                ]
+                            ]
+                        }
                     },
                     {
                         "IpProtocol": "icmp",
                         "FromPort": -1,
                         "ToPort": -1,
-                        "CidrIp": "10.0.0.0\/16"
+                        "CidrIp": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "VpnPrefix"
+                                    },
+                                    ".0.0\/16"
+                                ]
+                            ]
+                        }
                     },
                     {
                         "IpProtocol": "tcp",
@@ -130,7 +173,17 @@
                         ]
                     ]
                 },
-                "CidrBlock": "10.0.31.0\/24",
+                "CidrBlock": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "VpnPrefix"
+                            },
+                            ".31.0\/24"
+                        ]
+                    ]
+                },
                 "VpcId": {
                     "Ref": "Vpc"
                 },
@@ -157,7 +210,17 @@
                         ]
                     ]
                 },
-                "CidrBlock": "10.0.32.0\/24",
+                "CidrBlock": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "VpnPrefix"
+                            },
+                            ".32.0\/24"
+                        ]
+                    ]
+                },
                 "VpcId": {
                     "Ref": "Vpc"
                 },
